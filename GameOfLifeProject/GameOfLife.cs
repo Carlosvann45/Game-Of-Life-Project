@@ -13,33 +13,49 @@ namespace GameOfLifeProject
 {
     public partial class GameOfLife : Form
     {
-        // The universe array
-        bool[,] universe = new bool[30, 30];
-        bool[,] scratchPad = new bool[30, 30];
+ 
+        bool[,] universe;
+        bool[,] scratchPad;
 
-        // Drawing colors
-        Color gridColor = Color.Black;
-        Color cellColor = Color.Gray;
+        Color gridColor;
+        Color cellColor;
 
-        // The Timer class
-        Timer timer = new Timer();
+        Timer timer;
 
-        // Generation count
-        int generations = 0;
+        int generations;
+        int timerInterval;
+        int arrayWidth;
+        int arrayHeight;
 
         public GameOfLife()
         {
             InitializeComponent();
-            //sets title
+           
             this.Text = "Game Of Life";
 
-            // Setup the timer
-            timer.Interval = 100; // milliseconds
+            graphicsPanel1.BackColor = Properties.Settings.Default.BackColor;
+            gridColor = Properties.Settings.Default.GridColor;
+            cellColor = Properties.Settings.Default.CellColor;
+            timerInterval = Properties.Settings.Default.TimerInterval;
+            arrayWidth = Properties.Settings.Default.ArrayWidth;
+            arrayHeight = Properties.Settings.Default.ArrayHeight;
+
+            universe = new bool[arrayWidth, arrayHeight];
+            scratchPad = new bool[arrayWidth, arrayHeight];
+
+            timer = new Timer();
+
+            timer.Interval = timerInterval;
             timer.Tick += Timer_Tick;
-            timer.Enabled = false; // start timer running
+            timer.Enabled = false;
+
+            generations = 0;
+
         }
 
-        // Calculate the next generation of cells
+        /// <summary>
+        /// Calculate the next generation of cells
+        /// </summary>
         private void NextGeneration()
         {
             int neighborCount;
@@ -67,18 +83,21 @@ namespace GameOfLifeProject
             }
  
             universe = scratchPad;
-            scratchPad = new bool[30, 30];
+            scratchPad = new bool[arrayWidth, arrayHeight];
 
-            // Increment generation count
             generations++;
 
-            // Update status strip generations
             toolStripStatusLabelGenerations.Text = "Generations = " + generations.ToString();
 
             graphicsPanel1.Invalidate();
         }
 
-        //Counts neighbers of given cell
+        /// <summary>
+        /// Counts neighbers of given cell
+        /// </summary>
+        /// <param name="x"></param>
+        /// <param name="y"></param>
+        /// <returns>The amount of neighbors </returns>
         private int CountNeighborsFinite(int x, int y)
         {
             int count = 0;
@@ -92,15 +111,10 @@ namespace GameOfLifeProject
                     int xCheck = x + xOffset;
                     int yCheck = y + yOffset;
 
-                    // if xOffset and yOffset are both equal to 0 then continue
                     if (xOffset == 0 && yOffset == 0) continue;
-                    // if xCheck is less than 0 then continue
                     if (xCheck < 0) continue;
-                    // if yCheck is less than 0 then continue
                     if (yCheck < 0) continue;
-                    // if xCheck is greater than or equal too xLen then continue
                     if (xCheck >= xLen) continue;
-                    // if yCheck is greater than or equal too yLen then continue
                     if (yCheck >= yLen) continue;
 
                     if (universe[xCheck, yCheck] == true) count++;
@@ -109,85 +123,81 @@ namespace GameOfLifeProject
             return count;
         }
 
-        // The event called by the timer every Interval milliseconds.
+        /// <summary>
+        /// The event called by the timer every Interval milliseconds.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>        
         private void Timer_Tick(object sender, EventArgs e)
         {
             NextGeneration();
         }
 
-        //paints grid with lines
+        /// <summary>
+        /// paints grid with lines around boxes
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void graphicsPanel1_Paint(object sender, PaintEventArgs e)
         {
-            // Calculate the width and height of each cell in pixels
-            // CELL WIDTH = WINDOW WIDTH / NUMBER OF CELLS IN X
             double cellWidth = (double)graphicsPanel1.ClientSize.Width / (double)universe.GetLength(0);
-            // CELL HEIGHT = WINDOW HEIGHT / NUMBER OF CELLS IN Y
             double cellHeight = (double)graphicsPanel1.ClientSize.Height / (double)universe.GetLength(1);
 
-            // A Pen for drawing the grid lines (color, width)
             Pen gridPen = new Pen(gridColor, 1);
 
-            // A Brush for filling living cells interiors (color)
             Brush cellBrush = new SolidBrush(cellColor);
 
-            // Iterate through the universe in the y, top to bottom
             for (int y = 0; y < universe.GetLength(1); y++)
             {
-                // Iterate through the universe in the x, left to right
                 for (int x = 0; x < universe.GetLength(0); x++)
                 {
-                    // A rectangle to represent each cell in pixels
                     RectangleF cellRect = RectangleF.Empty;
                     cellRect.X = x * (float)cellWidth;
                     cellRect.Y = y * (float)cellHeight;
                     cellRect.Width = (float)cellWidth;
                     cellRect.Height = (float)cellHeight;
 
-                    // Fill the cell with a brush if alive
                     if (universe[x, y] == true)
                     {
                         e.Graphics.FillRectangle(cellBrush, cellRect);
                     }
 
-                    // Outline the cell with a pen
                     e.Graphics.DrawRectangle(gridPen, cellRect.X, cellRect.Y, cellRect.Width, cellRect.Height);
                 }
             }
 
-            // Cleaning up pens and brushes
             gridPen.Dispose();
             cellBrush.Dispose();
         }
 
-        //toggles cell on click
+        /// <summary>
+        /// toggles cell on click
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void graphicsPanel1_MouseClick(object sender, MouseEventArgs e)
         {
-            // If the left mouse button was clicked
+
             if (e.Button == MouseButtons.Left)
             {
-                // Calculate the width and height of each cell in pixels
+
                 float cellWidth = (float)graphicsPanel1.ClientSize.Width / (float)universe.GetLength(0);
                 float cellHeight = (float)graphicsPanel1.ClientSize.Height / (float)universe.GetLength(1);
 
 
-                // Calculate the cell that was clicked in
-                // CELL X = MOUSE X / CELL WIDTH
                 int x = (int)Math.Floor(e.X / cellWidth);
-                // CELL Y = MOUSE Y / CELL HEIGHT
                 int y = (int)Math.Floor(e.Y / cellHeight);
 
-                // Toggle the cell's state
                 try
                 {
                     universe[x, y] = !universe[x, y];
                 }
                 catch
                 {
-                    //prevent click outside of grid from crashing game
+                    MessageBox.Show("Incorrect Click.\nTry Again.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
 
 
-                // Tell Windows you need to repaint
                 graphicsPanel1.Invalidate();
             }
         }
@@ -197,25 +207,41 @@ namespace GameOfLifeProject
 
         }
 
-        //when play button is clicked timer is started
+        /// <summary>
+        /// when play button is clicked timer is started
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void playToolStripButton_Click(object sender, EventArgs e)
         {
             timer.Enabled = true;
         }
 
-        //when pause button is clicked stops timer
+        /// <summary>
+        /// when pause button is clicked stops timer
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void pauseToolStripButton_Click(object sender, EventArgs e)
         {
             timer.Enabled = false;
         }
 
-        //On next button click will write next generation of cycle 
+        /// <summary>
+        /// On next button click will write next generation of cycle 
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void nextToolStripButton_Click(object sender, EventArgs e)
         {
             NextGeneration();
         }
 
-        //Restarts universe and scratch pad
+        /// <summary>
+        /// Restarts universe and scratch pad
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void newToolStripButton_Click(object sender, EventArgs e)
         {
             universe = new bool[30, 30];
@@ -224,7 +250,11 @@ namespace GameOfLifeProject
             graphicsPanel1.Invalidate();
         }
 
-        //On save click will save current universe to file
+        /// <summary>
+        /// On save click will save current universe to file
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void saveToolStripButton_Click(object sender, EventArgs e)
         {
             SaveFileDialog dlg = new SaveFileDialog();
@@ -256,15 +286,23 @@ namespace GameOfLifeProject
             }
         }
 
-        //Once exit button is clicked asks if user wants to exit and exits
+        /// <summary>
+        /// Once exit button is clicked asks if user wants to exit and exits
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void exitToolStripMenuItem_Click(object sender, EventArgs e)
         {
                 DialogResult result = MessageBox.Show("Are you sure you would like to exit?", "Exit Prompt", MessageBoxButtons.YesNo);
-                if (result == DialogResult.Yes) Environment.Exit(0);
+                if (result == DialogResult.Yes) this.Close();
               
         }
 
-        //Opens selected file one button click
+        /// <summary>
+        /// Opens and resizes array for cells file when ok button is clicked 
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void openToolStripButton_Click(object sender, EventArgs e)
         {
             OpenFileDialog dlg = new OpenFileDialog();
@@ -316,6 +354,192 @@ namespace GameOfLifeProject
                 reader.Close();
 
                 graphicsPanel1.Invalidate();
+            }
+        }
+
+        /// <summary>
+        /// Imports cell file when ok button is clicked
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void importStripMenuItem_Click(object sender, EventArgs e)
+        {
+            OpenFileDialog dlg = new OpenFileDialog();
+            dlg.Filter = "All Files |*.*|Cells|*.cells*";
+            dlg.FilterIndex = 2;
+
+            if (DialogResult.OK == dlg.ShowDialog())
+            {
+                StreamReader reader = new StreamReader(dlg.FileName);
+
+                int yPos = 0;
+
+                while (!reader.EndOfStream)
+                {
+                    string row = reader.ReadLine();
+
+                    if (row[0] != '!')
+                    {
+                        for (int xPos = 0; xPos < row.Length; xPos++)
+                        {
+                            if (row[xPos] == 'O') universe[xPos, yPos] = true;
+                            else universe[xPos, yPos] = false;
+                        }
+
+                        yPos++;
+                    }
+                }
+
+                reader.Close();
+
+                graphicsPanel1.Invalidate();
+            }
+
+        }
+
+        /// <summary>
+        /// Changes back color once ok button is clicked
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void backColorToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            ColorDialog dlg = new ColorDialog();
+
+            if (DialogResult.OK == dlg.ShowDialog()) {
+                graphicsPanel1.BackColor = dlg.Color;
+            }
+        }
+
+        /// <summary>
+        /// Changes cell color when ok button is clicked
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void cellColorToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            ColorDialog dlg = new ColorDialog();
+
+            if (DialogResult.OK == dlg.ShowDialog())
+            {
+                cellColor = dlg.Color;
+            }
+
+            graphicsPanel1.Invalidate();
+        }
+
+        /// <summary>
+        /// Changes grid color when clicked ok button is clicked
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void gridColorToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            ColorDialog dlg = new ColorDialog();
+
+            if (DialogResult.OK == dlg.ShowDialog())
+            {
+                gridColor = dlg.Color;
+            }
+
+            graphicsPanel1.Invalidate();
+        }
+
+        /// <summary>
+        /// Saves settings on application exit
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void GameOfLife_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            Properties.Settings.Default.BackColor = graphicsPanel1.BackColor;
+            Properties.Settings.Default.CellColor = cellColor;
+            Properties.Settings.Default.GridColor = gridColor;
+            Properties.Settings.Default.TimerInterval = timerInterval;
+            Properties.Settings.Default.ArrayWidth = arrayWidth;
+            Properties.Settings.Default.ArrayHeight = arrayHeight;
+
+            Properties.Settings.Default.Save();
+        }
+
+        /// <summary>
+        /// Resets settings to original settings
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void resetToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            Properties.Settings.Default.Reset();
+
+            graphicsPanel1.BackColor = Properties.Settings.Default.BackColor;
+            cellColor = Properties.Settings.Default.CellColor;
+            gridColor = Properties.Settings.Default.GridColor;
+            timerInterval = Properties.Settings.Default.TimerInterval;
+            arrayWidth = Properties.Settings.Default.ArrayWidth;
+            arrayHeight = Properties.Settings.Default.ArrayHeight;
+
+            graphicsPanel1.Invalidate();
+        }
+
+        /// <summary>
+        /// Resets Settings to saved default settings
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void reloadToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            Properties.Settings.Default.Reload();
+
+            graphicsPanel1.BackColor = Properties.Settings.Default.BackColor;
+            cellColor = Properties.Settings.Default.CellColor;
+            gridColor = Properties.Settings.Default.GridColor;
+            timerInterval = Properties.Settings.Default.TimerInterval;
+            arrayWidth = Properties.Settings.Default.ArrayWidth;
+            arrayHeight = Properties.Settings.Default.ArrayHeight;
+
+            graphicsPanel1.Invalidate();
+        }
+
+        /// <summary>
+        /// Opens option dialog to adjust timer interval, width, and height settings
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void optionsToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            OptionsDialog dlg = new OptionsDialog();
+
+            dlg.TimerInterval = timerInterval;
+            dlg.ArrayWidth = arrayWidth;
+            dlg.ArrayHeight = arrayHeight;
+
+            if (DialogResult.OK == dlg.ShowDialog()) {
+
+                timerInterval = dlg.TimerInterval;
+                arrayWidth = dlg.ArrayWidth;
+                arrayHeight = dlg.ArrayHeight;
+
+                universe = new bool[arrayWidth, arrayHeight];
+                scratchPad = new bool[arrayWidth, arrayHeight];
+
+                graphicsPanel1.Invalidate();
+            }
+        }
+
+        private void toToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            RunToDialog dlg = new RunToDialog();
+
+            if (DialogResult.OK == dlg.ShowDialog())
+            {
+                int loops = dlg.RunToNum;
+
+                while (loops > 0)
+                {
+                    NextGeneration();
+
+                    loops--;
+                }
             }
         }
     }
