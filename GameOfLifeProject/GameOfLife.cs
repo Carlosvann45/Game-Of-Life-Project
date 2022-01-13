@@ -26,6 +26,7 @@ namespace GameOfLifeProject
         int timerInterval;
         int arrayWidth;
         int arrayHeight;
+        int randomSeed;
 
         public GameOfLife()
         {
@@ -39,6 +40,7 @@ namespace GameOfLifeProject
             timerInterval = Properties.Settings.Default.TimerInterval;
             arrayWidth = Properties.Settings.Default.ArrayWidth;
             arrayHeight = Properties.Settings.Default.ArrayHeight;
+            randomSeed = Properties.Settings.Default.RandomSeed;
 
             universe = new bool[arrayWidth, arrayHeight];
             scratchPad = new bool[arrayWidth, arrayHeight];
@@ -200,11 +202,6 @@ namespace GameOfLifeProject
 
                 graphicsPanel1.Invalidate();
             }
-        }
-
-        private void toolStripStatusLabelGenerations_Click(object sender, EventArgs e)
-        {
-
         }
 
         /// <summary>
@@ -458,6 +455,7 @@ namespace GameOfLifeProject
             Properties.Settings.Default.TimerInterval = timerInterval;
             Properties.Settings.Default.ArrayWidth = arrayWidth;
             Properties.Settings.Default.ArrayHeight = arrayHeight;
+            Properties.Settings.Default.RandomSeed = randomSeed;
 
             Properties.Settings.Default.Save();
         }
@@ -477,6 +475,7 @@ namespace GameOfLifeProject
             timerInterval = Properties.Settings.Default.TimerInterval;
             arrayWidth = Properties.Settings.Default.ArrayWidth;
             arrayHeight = Properties.Settings.Default.ArrayHeight;
+            randomSeed = Properties.Settings.Default.RandomSeed;
 
             graphicsPanel1.Invalidate();
         }
@@ -496,6 +495,7 @@ namespace GameOfLifeProject
             timerInterval = Properties.Settings.Default.TimerInterval;
             arrayWidth = Properties.Settings.Default.ArrayWidth;
             arrayHeight = Properties.Settings.Default.ArrayHeight;
+            randomSeed = Properties.Settings.Default.RandomSeed;
 
             graphicsPanel1.Invalidate();
         }
@@ -526,6 +526,11 @@ namespace GameOfLifeProject
             }
         }
 
+        /// <summary>
+        /// opens run to dialog and runs the number of genrations choosen
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void toToolStripMenuItem_Click(object sender, EventArgs e)
         {
             RunToDialog dlg = new RunToDialog();
@@ -541,6 +546,23 @@ namespace GameOfLifeProject
                     loops--;
                 }
             }
+        }
+
+        /// <summary>
+        /// opens random seed dialog and generates random grid from seed
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void fromSeedToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            SeedDialog dlg = new SeedDialog();
+
+            dlg.RandomSeed = randomSeed;
+
+            if (DialogResult.OK == dlg.ShowDialog())
+            {
+                randomSeed = dlg.RandomSeed;
+            };
         }
     }
 }

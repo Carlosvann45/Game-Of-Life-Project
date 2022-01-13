@@ -94,5 +94,17 @@ namespace GameOfLifeProject.Properties {
                 this["ArrayHeight"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("0")]
+        public int RandomSeed {
+            get {
+                return ((int)(this["RandomSeed"]));
+            }
+            set {
+                this["RandomSeed"] = value;
+            }
+        }
     }
 }
