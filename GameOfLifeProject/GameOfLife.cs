@@ -13,7 +13,7 @@ namespace GameOfLifeProject
 {
     public partial class GameOfLife : Form
     {
- 
+
         bool[,] universe;
         bool[,] scratchPad;
 
@@ -31,7 +31,7 @@ namespace GameOfLifeProject
         public GameOfLife()
         {
             InitializeComponent();
-           
+
             this.Text = "Game Of Life";
 
             graphicsPanel1.BackColor = Properties.Settings.Default.BackColor;
@@ -51,8 +51,9 @@ namespace GameOfLifeProject
             timer.Tick += Timer_Tick;
             timer.Enabled = false;
 
+            intervalStripStatusLabel1.Text = "Interval: " + timerInterval;
+            seedStripStatusLabel.Text = "Seed: " + randomSeed;
             generations = 0;
-
         }
 
         /// <summary>
@@ -66,9 +67,11 @@ namespace GameOfLifeProject
             {
                 for (int x = 0; x < universe.GetLength(0); x++)
                 {
-                    neighborCount = CountNeighborsFinite(x, y);
+                    if (finiteToolStripMenuItem.Checked) neighborCount = CountNeighborsFinite(x, y);
+                    else neighborCount = CountNeighborsToroidal(x, y);
 
-                    if (universe[x,y])
+
+                    if (universe[x, y])
                     {
                         if (neighborCount < 2) scratchPad[x, y] = false;
 
@@ -78,20 +81,40 @@ namespace GameOfLifeProject
                     }
                     else
                     {
-                            if (neighborCount == 3) scratchPad[x, y] = true;
-                        
+                        if (neighborCount == 3) scratchPad[x, y] = true;
+
                     }
                 }
             }
- 
+
             universe = scratchPad;
             scratchPad = new bool[arrayWidth, arrayHeight];
 
             generations++;
 
-            toolStripStatusLabelGenerations.Text = "Generations = " + generations.ToString();
+            toolStripStatusLabelGenerations.Text = "Generations: " + generations.ToString();
+            activeStripStatusLabel.Text = "Active: " + GetActiveCount().ToString();
 
             graphicsPanel1.Invalidate();
+        }
+
+        /// <summary>
+        /// Gets count of all active cells
+        /// </summary>
+        /// <returns>amount of alive cells</returns>
+        private int GetActiveCount()
+        {
+            int count = 0;
+
+            for (int y = 0; y < universe.GetLength(1); y++)
+            {
+                for (int x = 0; x < universe.GetLength(0); x++)
+                {
+                    if (universe[x, y]) count++;
+                }
+            }
+
+            return count;
         }
 
         /// <summary>
@@ -125,6 +148,35 @@ namespace GameOfLifeProject
             return count;
         }
 
+        private int CountNeighborsToroidal(int x, int y)
+        {
+            int count = 0;
+            int xLen = universe.GetLength(0);
+            int yLen = universe.GetLength(1);
+            for (int yOffset = -1; yOffset <= 1; yOffset++)
+            {
+                for (int xOffset = -1; xOffset <= 1; xOffset++)
+                {
+                    int xCheck = x + xOffset;
+                    int yCheck = y + yOffset;
+
+                    // if xOffset and yOffset are both equal to 0 then continue
+                    if (xOffset == 0 && yOffset == 0) continue;
+                    // if xCheck is less than 0 then set to xLen - 1
+                    if (xCheck < 0) xCheck = xLen - 1;
+                    // if yCheck is less than 0 then set to yLen - 1
+                    if (yCheck < 0) yCheck = xLen - 1;
+                    // if xCheck is greater than or equal too xLen then set to 0
+                    if (xCheck >= xLen) xCheck = 0;
+                    // if yCheck is greater than or equal too yLen then set to 0
+                    if (yCheck >= yLen) yCheck = 0;
+
+                    if (universe[xCheck, yCheck] == true) count++;
+                }
+            }
+            return count;
+        }
+
         /// <summary>
         /// The event called by the timer every Interval milliseconds.
         /// </summary>
@@ -149,6 +201,14 @@ namespace GameOfLifeProject
 
             Brush cellBrush = new SolidBrush(cellColor);
 
+            Font font = new Font("Arial", graphicsPanel1.Font.Size);
+
+            StringFormat stringFormat = new StringFormat();
+            stringFormat.Alignment = StringAlignment.Center;
+            stringFormat.LineAlignment = StringAlignment.Center;
+
+            int neighbors;
+
             for (int y = 0; y < universe.GetLength(1); y++)
             {
                 for (int x = 0; x < universe.GetLength(0); x++)
@@ -164,7 +224,16 @@ namespace GameOfLifeProject
                         e.Graphics.FillRectangle(cellBrush, cellRect);
                     }
 
-                    e.Graphics.DrawRectangle(gridPen, cellRect.X, cellRect.Y, cellRect.Width, cellRect.Height);
+                    if (finiteToolStripMenuItem.Checked) neighbors = CountNeighborsFinite(x, y);
+                    else neighbors = CountNeighborsToroidal(x, y);
+
+                    if (neighbors > 0 && neighborCountToolStripMenuItem.Checked)
+                    {
+                        if (neighbors < 3) e.Graphics.DrawString(neighbors.ToString(), font, Brushes.Red, cellRect, stringFormat);
+                        if (neighbors > 2) e.Graphics.DrawString(neighbors.ToString(), font, Brushes.Green, cellRect, stringFormat);
+
+                    }
+                    if (gridToolStripMenuItem.Checked) e.Graphics.DrawRectangle(gridPen, cellRect.X, cellRect.Y, cellRect.Width, cellRect.Height);
                 }
             }
 
@@ -199,6 +268,7 @@ namespace GameOfLifeProject
                     MessageBox.Show("Incorrect Click.\nTry Again.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
 
+                activeStripStatusLabel.Text = "Active: " + GetActiveCount().ToString();
 
                 graphicsPanel1.Invalidate();
             }
@@ -290,9 +360,9 @@ namespace GameOfLifeProject
         /// <param name="e"></param>
         private void exitToolStripMenuItem_Click(object sender, EventArgs e)
         {
-                DialogResult result = MessageBox.Show("Are you sure you would like to exit?", "Exit Prompt", MessageBoxButtons.YesNo);
-                if (result == DialogResult.Yes) this.Close();
-              
+            DialogResult result = MessageBox.Show("Are you sure you would like to exit?", "Exit Prompt", MessageBoxButtons.YesNo);
+            if (result == DialogResult.Yes) this.Close();
+
         }
 
         /// <summary>
@@ -320,7 +390,7 @@ namespace GameOfLifeProject
                     {
                         maxHeight++;
 
-                        if (row.Length > maxWidth)  maxWidth = row.Length;
+                        if (row.Length > maxWidth) maxWidth = row.Length;
 
                     }
                 }
@@ -403,7 +473,8 @@ namespace GameOfLifeProject
         {
             ColorDialog dlg = new ColorDialog();
 
-            if (DialogResult.OK == dlg.ShowDialog()) {
+            if (DialogResult.OK == dlg.ShowDialog())
+            {
                 graphicsPanel1.BackColor = dlg.Color;
             }
         }
@@ -513,7 +584,8 @@ namespace GameOfLifeProject
             dlg.ArrayWidth = arrayWidth;
             dlg.ArrayHeight = arrayHeight;
 
-            if (DialogResult.OK == dlg.ShowDialog()) {
+            if (DialogResult.OK == dlg.ShowDialog())
+            {
 
                 timerInterval = dlg.TimerInterval;
                 arrayWidth = dlg.ArrayWidth;
@@ -522,6 +594,9 @@ namespace GameOfLifeProject
                 universe = new bool[arrayWidth, arrayHeight];
                 scratchPad = new bool[arrayWidth, arrayHeight];
 
+
+                intervalStripStatusLabel1.Text = "Interval: " + timerInterval;
+                seedStripStatusLabel.Text = "Seed: " + randomSeed;
                 graphicsPanel1.Invalidate();
             }
         }
@@ -562,7 +637,36 @@ namespace GameOfLifeProject
             if (DialogResult.OK == dlg.ShowDialog())
             {
                 randomSeed = dlg.RandomSeed;
+                seedStripStatusLabel.Text = "Seed: " + randomSeed;
             };
+        }
+
+        private void toroidalToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            finiteToolStripMenuItem.Checked = false;
+            toroidalToolStripMenuItem.Checked = true;
+        }
+
+        private void finiteToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            finiteToolStripMenuItem.Checked = true;
+            toroidalToolStripMenuItem.Checked = false;
+        }
+
+        private void neighborCountToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            neighborCountToolStripMenuItem.Checked = !neighborCountToolStripMenuItem.Checked;
+            neighborCountToolStripMenuItem1.Checked = !neighborCountToolStripMenuItem1.Checked;
+
+            graphicsPanel1.Invalidate();
+        }
+
+        private void gridToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            gridToolStripMenuItem.Checked = !gridToolStripMenuItem.Checked;
+            gridToolStripMenuItem1.Checked = !gridToolStripMenuItem1.Checked;
+
+            graphicsPanel1.Invalidate();
         }
     }
 }
