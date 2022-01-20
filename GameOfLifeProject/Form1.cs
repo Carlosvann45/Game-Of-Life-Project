@@ -10,6 +10,9 @@ using System.Windows.Forms;
 
 namespace GameOfLifeProject
 {
+    /// <summary>
+    /// dialog class to modify setting options
+    /// </summary>
     public partial class OptionsDialog : Form
     {
         public OptionsDialog()

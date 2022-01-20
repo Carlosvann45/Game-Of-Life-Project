@@ -11,6 +11,9 @@ using System.Windows.Forms;
 
 namespace GameOfLifeProject
 {
+    /// <summary>
+    /// form class to run the game of life with all control over user settings and options
+    /// </summary>
     public partial class GameOfLife : Form
     {
 
@@ -118,7 +121,7 @@ namespace GameOfLifeProject
         }
 
         /// <summary>
-        /// Counts neighbers of given cell
+        /// Counts neighbers of given cell when finite
         /// </summary>
         /// <param name="x"></param>
         /// <param name="y"></param>
@@ -148,6 +151,12 @@ namespace GameOfLifeProject
             return count;
         }
 
+        /// <summary>
+        /// Counts neighbers of given cell when toroidal
+        /// </summary>
+        /// <param name="x"></param>
+        /// <param name="y"></param>
+        /// <returns>The amount of neighbors </returns>
         private int CountNeighborsToroidal(int x, int y)
         {
             int count = 0;
@@ -641,18 +650,33 @@ namespace GameOfLifeProject
             };
         }
 
+        /// <summary>
+        /// toggles count neighbor to toridal mode
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void toroidalToolStripMenuItem_Click(object sender, EventArgs e)
         {
             finiteToolStripMenuItem.Checked = false;
             toroidalToolStripMenuItem.Checked = true;
         }
 
+        /// <summary>
+        /// toggles count neighbor to finite mode
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void finiteToolStripMenuItem_Click(object sender, EventArgs e)
         {
             finiteToolStripMenuItem.Checked = true;
             toroidalToolStripMenuItem.Checked = false;
         }
 
+        /// <summary>
+        /// toggles adding neighbor count to cells
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void neighborCountToolStripMenuItem_Click(object sender, EventArgs e)
         {
             neighborCountToolStripMenuItem.Checked = !neighborCountToolStripMenuItem.Checked;
@@ -661,6 +685,11 @@ namespace GameOfLifeProject
             graphicsPanel1.Invalidate();
         }
 
+        /// <summary>
+        /// toggles whether grid will show around alive cells
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void gridToolStripMenuItem_Click(object sender, EventArgs e)
         {
             gridToolStripMenuItem.Checked = !gridToolStripMenuItem.Checked;

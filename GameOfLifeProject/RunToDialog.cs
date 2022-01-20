@@ -10,6 +10,9 @@ using System.Windows.Forms;
 
 namespace GameOfLifeProject
 {
+    /// <summary>
+    /// diaog class that controls running to a specified generation
+    /// </summary>
     public partial class RunToDialog : Form
     {
         public RunToDialog()

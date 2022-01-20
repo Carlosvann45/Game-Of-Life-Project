@@ -10,6 +10,9 @@ using System.Windows.Forms;
 
 namespace GameOfLifeProject
 {
+    /// <summary>
+    /// dialog class that generates or shows the current random seed to generate a random grid
+    /// </summary>
     public partial class SeedDialog : Form
     {
         public SeedDialog()
