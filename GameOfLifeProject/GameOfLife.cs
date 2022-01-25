@@ -567,6 +567,7 @@ namespace GameOfLifeProject
         /// <param name="e"></param>
         private void GameOfLife_FormClosing(object sender, FormClosingEventArgs e)
         {
+            Properties.Settings.Default.BackColor = graphicsPanel2.BackColor;
             Properties.Settings.Default.CellColor = cellColor;
             Properties.Settings.Default.GridColor = gridColor;
             Properties.Settings.Default.TimerInterval = timerInterval;
@@ -586,6 +587,7 @@ namespace GameOfLifeProject
         {
             Properties.Settings.Default.Reset();
 
+            graphicsPanel2.BackColor = Properties.Settings.Default.BackColor;
             cellColor = Properties.Settings.Default.CellColor;
             gridColor = Properties.Settings.Default.GridColor;
             timerInterval = Properties.Settings.Default.TimerInterval;
