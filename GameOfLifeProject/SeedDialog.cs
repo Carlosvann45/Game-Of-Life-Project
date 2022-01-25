@@ -18,8 +18,8 @@ namespace GameOfLifeProject
         public SeedDialog()
         {
             InitializeComponent();
-            randomNumericUpDown.Maximum = decimal.MaxValue;
-            randomNumericUpDown.Minimum = decimal.MinValue;
+            randomNumericUpDown.Maximum = int.MaxValue;
+            randomNumericUpDown.Minimum = int.MinValue;
         }
 
         public int RandomSeed
@@ -42,9 +42,9 @@ namespace GameOfLifeProject
         /// <param name="e"></param>
         private void randomizeButton_Click(object sender, EventArgs e)
         {
-            Random rand = new Random(Guid.NewGuid().GetHashCode());
+            Random rand = new Random();
 
-            randomNumericUpDown.Value = rand.Next();
+            randomNumericUpDown.Value = rand.Next(int.MinValue, int.MaxValue);
         }
     }
 }

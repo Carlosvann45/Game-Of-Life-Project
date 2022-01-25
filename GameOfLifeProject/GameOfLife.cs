@@ -37,7 +37,7 @@ namespace GameOfLifeProject
 
             this.Text = "Game Of Life";
 
-            graphicsPanel1.BackColor = Properties.Settings.Default.BackColor;
+            graphicsPanel2.BackColor = Properties.Settings.Default.BackColor;
             gridColor = Properties.Settings.Default.GridColor;
             cellColor = Properties.Settings.Default.CellColor;
             timerInterval = Properties.Settings.Default.TimerInterval;
@@ -98,7 +98,7 @@ namespace GameOfLifeProject
             toolStripStatusLabelGenerations.Text = "Generations: " + generations.ToString();
             activeStripStatusLabel.Text = "Active: " + GetActiveCount().ToString();
 
-            graphicsPanel1.Invalidate();
+            graphicsPanel2.Invalidate();
         }
 
         /// <summary>
@@ -123,8 +123,8 @@ namespace GameOfLifeProject
         /// <summary>
         /// Counts neighbers of given cell when finite
         /// </summary>
-        /// <param name="x"></param>
-        /// <param name="y"></param>
+        /// <param name="x">x coordinate</param>
+        /// <param name="y">y coordinate</param>
         /// <returns>The amount of neighbors </returns>
         private int CountNeighborsFinite(int x, int y)
         {
@@ -154,8 +154,8 @@ namespace GameOfLifeProject
         /// <summary>
         /// Counts neighbers of given cell when toroidal
         /// </summary>
-        /// <param name="x"></param>
-        /// <param name="y"></param>
+        /// <param name="x">x coordinate</param>
+        /// <param name="y">y coordinate</param>
         /// <returns>The amount of neighbors </returns>
         private int CountNeighborsToroidal(int x, int y)
         {
@@ -169,15 +169,10 @@ namespace GameOfLifeProject
                     int xCheck = x + xOffset;
                     int yCheck = y + yOffset;
 
-                    // if xOffset and yOffset are both equal to 0 then continue
                     if (xOffset == 0 && yOffset == 0) continue;
-                    // if xCheck is less than 0 then set to xLen - 1
                     if (xCheck < 0) xCheck = xLen - 1;
-                    // if yCheck is less than 0 then set to yLen - 1
                     if (yCheck < 0) yCheck = xLen - 1;
-                    // if xCheck is greater than or equal too xLen then set to 0
                     if (xCheck >= xLen) xCheck = 0;
-                    // if yCheck is greater than or equal too yLen then set to 0
                     if (yCheck >= yLen) yCheck = 0;
 
                     if (universe[xCheck, yCheck] == true) count++;
@@ -203,14 +198,14 @@ namespace GameOfLifeProject
         /// <param name="e"></param>
         private void graphicsPanel1_Paint(object sender, PaintEventArgs e)
         {
-            double cellWidth = (double)graphicsPanel1.ClientSize.Width / (double)universe.GetLength(0);
-            double cellHeight = (double)graphicsPanel1.ClientSize.Height / (double)universe.GetLength(1);
+            float cellWidth = (float)graphicsPanel2.ClientSize.Width / (float)universe.GetLength(0);
+            float cellHeight = (float)graphicsPanel2.ClientSize.Height / (float)universe.GetLength(1);
 
             Pen gridPen = new Pen(gridColor, 1);
 
             Brush cellBrush = new SolidBrush(cellColor);
 
-            Font font = new Font("Arial", graphicsPanel1.Font.Size);
+            Font font = new Font("Arial", cellHeight * (float) 0.65);
 
             StringFormat stringFormat = new StringFormat();
             stringFormat.Alignment = StringAlignment.Center;
@@ -223,10 +218,10 @@ namespace GameOfLifeProject
                 for (int x = 0; x < universe.GetLength(0); x++)
                 {
                     RectangleF cellRect = RectangleF.Empty;
-                    cellRect.X = x * (float)cellWidth;
-                    cellRect.Y = y * (float)cellHeight;
-                    cellRect.Width = (float)cellWidth;
-                    cellRect.Height = (float)cellHeight;
+                    cellRect.X = x * cellWidth;
+                    cellRect.Y = y * cellHeight;
+                    cellRect.Width = cellWidth;
+                    cellRect.Height = cellHeight;
 
                     if (universe[x, y] == true)
                     {
@@ -242,12 +237,39 @@ namespace GameOfLifeProject
                         if (neighbors > 2) e.Graphics.DrawString(neighbors.ToString(), font, Brushes.Green, cellRect, stringFormat);
 
                     }
+
                     if (gridToolStripMenuItem.Checked) e.Graphics.DrawRectangle(gridPen, cellRect.X, cellRect.Y, cellRect.Width, cellRect.Height);
                 }
             }
 
+            if (hudToolStripMenuItem.Checked) DrawHud(e);
+
             gridPen.Dispose();
             cellBrush.Dispose();
+        }
+
+        /// <summary>
+        /// draws hud in graphics panel 
+        /// </summary>
+        /// <param name="e"></param>
+        private void DrawHud(PaintEventArgs e)
+        {
+            Font font = new Font("Arial", 15f, FontStyle.Bold);
+
+            Brush brush = new SolidBrush(Color.FromArgb(128, 255, 0, 0));
+
+
+            StringFormat stringFormat = new StringFormat();
+            stringFormat.Alignment = StringAlignment.Near;
+            stringFormat.LineAlignment = StringAlignment.Far;
+
+            string universeSize = $"Universe Size: {{ Width: {arrayWidth}, Height: {arrayHeight} }}";
+            string boundryType = $"Boundry Type: {(finiteToolStripMenuItem.Checked ? "Finite" : "Toroidal")}";
+            string cellCount = $"Cell Count: {GetActiveCount()}";
+            string hudGenerations = $"Generations: {generations}";
+            string hud = $"{hudGenerations}\n{cellCount}\n{boundryType}\n{universeSize}";
+
+            e.Graphics.DrawString(hud, font, brush, graphicsPanel2.ClientRectangle, stringFormat);
         }
 
         /// <summary>
@@ -261,8 +283,8 @@ namespace GameOfLifeProject
             if (e.Button == MouseButtons.Left)
             {
 
-                float cellWidth = (float)graphicsPanel1.ClientSize.Width / (float)universe.GetLength(0);
-                float cellHeight = (float)graphicsPanel1.ClientSize.Height / (float)universe.GetLength(1);
+                float cellWidth = (float)graphicsPanel2.ClientSize.Width / (float)universe.GetLength(0);
+                float cellHeight = (float)graphicsPanel2.ClientSize.Height / (float)universe.GetLength(1);
 
 
                 int x = (int)Math.Floor(e.X / cellWidth);
@@ -279,7 +301,7 @@ namespace GameOfLifeProject
 
                 activeStripStatusLabel.Text = "Active: " + GetActiveCount().ToString();
 
-                graphicsPanel1.Invalidate();
+                graphicsPanel2.Invalidate();
             }
         }
 
@@ -291,6 +313,10 @@ namespace GameOfLifeProject
         private void playToolStripButton_Click(object sender, EventArgs e)
         {
             timer.Enabled = true;
+            playToolStripButton.Enabled = false;
+            startToolStripMenuItem.Enabled = false;
+            pauseToolStripButton.Enabled = true;
+            pauseToolStripMenuItem.Enabled = true;
         }
 
         /// <summary>
@@ -301,6 +327,10 @@ namespace GameOfLifeProject
         private void pauseToolStripButton_Click(object sender, EventArgs e)
         {
             timer.Enabled = false;
+            playToolStripButton.Enabled = true;
+            startToolStripMenuItem.Enabled = true;
+            pauseToolStripButton.Enabled = false;
+            pauseToolStripMenuItem.Enabled = false;
         }
 
         /// <summary>
@@ -320,10 +350,14 @@ namespace GameOfLifeProject
         /// <param name="e"></param>
         private void newToolStripButton_Click(object sender, EventArgs e)
         {
-            universe = new bool[30, 30];
-            scratchPad = new bool[30, 30];
+            universe = new bool[arrayWidth, arrayHeight];
+            scratchPad = new bool[arrayWidth, arrayHeight];
+            generations = 0;
 
-            graphicsPanel1.Invalidate();
+            toolStripStatusLabelGenerations.Text = "Generations: " + generations.ToString();
+            activeStripStatusLabel.Text = "Active: " + GetActiveCount().ToString();
+
+            graphicsPanel2.Invalidate();
         }
 
         /// <summary>
@@ -429,7 +463,9 @@ namespace GameOfLifeProject
 
                 reader.Close();
 
-                graphicsPanel1.Invalidate();
+                activeStripStatusLabel.Text = "Active: " + GetActiveCount().ToString();
+
+                graphicsPanel2.Invalidate();
             }
         }
 
@@ -468,7 +504,9 @@ namespace GameOfLifeProject
 
                 reader.Close();
 
-                graphicsPanel1.Invalidate();
+                activeStripStatusLabel.Text = "Active: " + GetActiveCount().ToString();
+
+                graphicsPanel2.Invalidate();
             }
 
         }
@@ -484,7 +522,7 @@ namespace GameOfLifeProject
 
             if (DialogResult.OK == dlg.ShowDialog())
             {
-                graphicsPanel1.BackColor = dlg.Color;
+                graphicsPanel2.BackColor = dlg.Color;
             }
         }
 
@@ -502,7 +540,7 @@ namespace GameOfLifeProject
                 cellColor = dlg.Color;
             }
 
-            graphicsPanel1.Invalidate();
+            graphicsPanel2.Invalidate();
         }
 
         /// <summary>
@@ -519,7 +557,7 @@ namespace GameOfLifeProject
                 gridColor = dlg.Color;
             }
 
-            graphicsPanel1.Invalidate();
+            graphicsPanel2.Invalidate();
         }
 
         /// <summary>
@@ -529,7 +567,6 @@ namespace GameOfLifeProject
         /// <param name="e"></param>
         private void GameOfLife_FormClosing(object sender, FormClosingEventArgs e)
         {
-            Properties.Settings.Default.BackColor = graphicsPanel1.BackColor;
             Properties.Settings.Default.CellColor = cellColor;
             Properties.Settings.Default.GridColor = gridColor;
             Properties.Settings.Default.TimerInterval = timerInterval;
@@ -549,7 +586,6 @@ namespace GameOfLifeProject
         {
             Properties.Settings.Default.Reset();
 
-            graphicsPanel1.BackColor = Properties.Settings.Default.BackColor;
             cellColor = Properties.Settings.Default.CellColor;
             gridColor = Properties.Settings.Default.GridColor;
             timerInterval = Properties.Settings.Default.TimerInterval;
@@ -557,7 +593,7 @@ namespace GameOfLifeProject
             arrayHeight = Properties.Settings.Default.ArrayHeight;
             randomSeed = Properties.Settings.Default.RandomSeed;
 
-            graphicsPanel1.Invalidate();
+            graphicsPanel2.Invalidate();
         }
 
         /// <summary>
@@ -569,7 +605,7 @@ namespace GameOfLifeProject
         {
             Properties.Settings.Default.Reload();
 
-            graphicsPanel1.BackColor = Properties.Settings.Default.BackColor;
+            graphicsPanel2.BackColor = Properties.Settings.Default.BackColor;
             cellColor = Properties.Settings.Default.CellColor;
             gridColor = Properties.Settings.Default.GridColor;
             timerInterval = Properties.Settings.Default.TimerInterval;
@@ -577,7 +613,7 @@ namespace GameOfLifeProject
             arrayHeight = Properties.Settings.Default.ArrayHeight;
             randomSeed = Properties.Settings.Default.RandomSeed;
 
-            graphicsPanel1.Invalidate();
+            graphicsPanel2.Invalidate();
         }
 
         /// <summary>
@@ -597,16 +633,20 @@ namespace GameOfLifeProject
             {
 
                 timerInterval = dlg.TimerInterval;
-                arrayWidth = dlg.ArrayWidth;
-                arrayHeight = dlg.ArrayHeight;
+                timer.Interval = timerInterval;
 
-                universe = new bool[arrayWidth, arrayHeight];
-                scratchPad = new bool[arrayWidth, arrayHeight];
+                if (arrayHeight != dlg.ArrayHeight || arrayWidth != dlg.ArrayWidth)
+                {
+                    arrayWidth = dlg.ArrayWidth;
+                    arrayHeight = dlg.ArrayHeight;
+                    universe = new bool[arrayWidth, arrayHeight];
+                    scratchPad = new bool[arrayWidth, arrayHeight];
+                }
 
 
                 intervalStripStatusLabel1.Text = "Interval: " + timerInterval;
                 seedStripStatusLabel.Text = "Seed: " + randomSeed;
-                graphicsPanel1.Invalidate();
+                graphicsPanel2.Invalidate();
             }
         }
 
@@ -647,7 +687,32 @@ namespace GameOfLifeProject
             {
                 randomSeed = dlg.RandomSeed;
                 seedStripStatusLabel.Text = "Seed: " + randomSeed;
+                RandomizeGrid();
             };
+        }
+
+        /// <summary>
+        /// gnerates a random grid by time or by seed
+        /// </summary>
+        /// <param name="time">boolean for if rand should be time</param>
+        private void RandomizeGrid(bool time = false)
+        {
+            Random rand;
+
+            if (time) rand = new Random();
+            else rand = new Random(randomSeed);
+
+            for (int y = 0; y < universe.GetLength(1); y++)
+            {
+                for (int x = 0; x < universe.GetLength(0); x++)
+                {
+                    universe[x, y] = (rand.Next(0, 2) == 0);
+                }
+            }
+
+            activeStripStatusLabel.Text = "Active: " + GetActiveCount().ToString();
+
+            graphicsPanel2.Invalidate();
         }
 
         /// <summary>
@@ -682,7 +747,7 @@ namespace GameOfLifeProject
             neighborCountToolStripMenuItem.Checked = !neighborCountToolStripMenuItem.Checked;
             neighborCountToolStripMenuItem1.Checked = !neighborCountToolStripMenuItem1.Checked;
 
-            graphicsPanel1.Invalidate();
+            graphicsPanel2.Invalidate();
         }
 
         /// <summary>
@@ -695,7 +760,40 @@ namespace GameOfLifeProject
             gridToolStripMenuItem.Checked = !gridToolStripMenuItem.Checked;
             gridToolStripMenuItem1.Checked = !gridToolStripMenuItem1.Checked;
 
-            graphicsPanel1.Invalidate();
+            graphicsPanel2.Invalidate();
+        }
+
+        /// <summary>
+        /// randomizes grid from current seed
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void fromCurrentSeedToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            RandomizeGrid();
+        }
+
+        /// <summary>
+        /// randomizes grid based of time
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void fromTimeToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            RandomizeGrid(true);
+        }
+
+        /// <summary>
+        /// toggles if hud should show
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void hudToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            hudToolStripMenuItem.Checked = !hudToolStripMenuItem.Checked;
+            hudToolStripMenuItem1.Checked = !hudToolStripMenuItem1.Checked;
+
+            graphicsPanel2.Invalidate();
         }
     }
 }
