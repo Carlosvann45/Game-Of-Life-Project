@@ -3,7 +3,7 @@
   <summary>Table of Contents</summary>
   <ol>
     <li>
-      <a href="#game-of-life-project">Bank Application</a>
+      <a href="#game-of-life-project">Game Of Life Project</a>
       <ul>
         <li><a href="#built-with">Built With</a></li>
       </ul>
